@@ -57,9 +57,14 @@ def makeDiscretVariaticFrame(intervalFrame: pd.DataFrame) -> pd.DataFrame:
     result['density'] = result['relatFreq'].apply(lambda relatFreq: relatFreq/intervalFrame.iloc[0,0].calculate_diff())
     return result
             
-def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame) -> pd.DataFrame:
+def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, experCount: Decimal) -> pd.DataFrame:
+    CONF_INTR_MEANVALUE: Decimal = Decimal('1.96')
     result: pd.DataFrame = pd.DataFrame() 
     selectiveAvg: Decimal = (discretVarFrame['mean'] * discretVarFrame['relatFreq']).sum()
     result['mean'] = discretVarFrame['mean']
     result['deviation'] = discretVarFrame['mean'].apply(lambda mean: mean - selectiveAvg)
+    dispersion: Decimal = (result['deviation']**2 * discretVarFrame['relatFreq']).sum()
+    unclattEvaul: Decimal = ((experCount/Decimal(experCount-1))*dispersion).sqrt()
+
+    
     return result
