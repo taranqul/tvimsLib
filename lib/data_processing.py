@@ -1,6 +1,7 @@
 import pandas as pd
 from lib.custom_types.my_fraction import MyFraction as mf
 from lib.custom_types.my_intervals import MyIntervals as mi
+from lib.utils import laplass as lp
 from decimal import Decimal
 def makeFrame(list: list[int], collumn: str) -> pd.DataFrame:
     result: pd.DataFrame = pd.DataFrame(list, columns=[collumn])
@@ -52,19 +53,50 @@ def makeEmpiricFuncFrame(intervalFrame: pd.DataFrame) -> pd.DataFrame:
 
 def makeDiscretVariaticFrame(intervalFrame: pd.DataFrame) -> pd.DataFrame:
     result: pd.DataFrame = pd.DataFrame()
+    STEP: Decimal = intervalFrame.iloc[0,0].calculate_diff()
     result['mean'] = intervalFrame['intervals'].apply(lambda interval: interval.calculate_mean())
     result['relatFreq'] = intervalFrame['relatFreq'].apply(lambda relatFreq: relatFreq.value())
-    result['density'] = result['relatFreq'].apply(lambda relatFreq: relatFreq/intervalFrame.iloc[0,0].calculate_diff())
+    result['density'] = result['relatFreq'].apply(lambda relatFreq: relatFreq / STEP)
     return result
             
-def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, experCount: Decimal) -> pd.DataFrame:
+def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EXPER_COUNT: Decimal, STR_Q_VALUE: str) -> pd.DataFrame:
     CONF_INTR_MEANVALUE: Decimal = Decimal('1.96')
+    ONE_DECIMAL = Decimal(1)
+    DEC_Q_VALUE = Decimal(STR_Q_VALUE)
+    STEP: Decimal = intervalFrame.iloc[0,0].calculate_diff()
+
     result: pd.DataFrame = pd.DataFrame() 
     selectiveAvg: Decimal = (discretVarFrame['mean'] * discretVarFrame['relatFreq']).sum()
     result['mean'] = discretVarFrame['mean']
     result['deviation'] = discretVarFrame['mean'].apply(lambda mean: mean - selectiveAvg)
     dispersion: Decimal = (result['deviation']**2 * discretVarFrame['relatFreq']).sum()
-    unclattEvaul: Decimal = ((experCount/Decimal(experCount-1))*dispersion).sqrt()
 
-    
+    unclattEvaul: Decimal = ((EXPER_COUNT / (EXPER_COUNT - ONE_DECIMAL)) * dispersion).sqrt()
+    temp = CONF_INTR_MEANVALUE*((dispersion / EXPER_COUNT).sqrt())
+    trustMeanInterval: mi = mi(selectiveAvg - temp, selectiveAvg + temp)
+    trustAvgQuadInterval: mi = mi(unclattEvaul / (ONE_DECIMAL + DEC_Q_VALUE), unclattEvaul /  (ONE_DECIMAL - DEC_Q_VALUE))
+    result['u_i'] = result['deviation'].apply(lambda deviation: deviation/trustAvgQuadInterval.calculate_mean())
+    result['laplass'] = result['u_i'].apply(lambda u_i: lp(u_i))
+    EQUAL_FREQ_AMPLIFYER: Decimal = (EXPER_COUNT*STEP)/trustAvgQuadInterval.calculate_mean()
+    result['equalFreq'] = result['laplass'].apply(lambda laplass: laplass * EQUAL_FREQ_AMPLIFYER)
+    result['roundedEqualFreq'] = result['equalFreq'].apply(lambda equlFreq: equlFreq.quantize(Decimal('1')))
+    freq_sum: Decimal = result['roundedEqualFreq'].sum()
+    rejection: int = int(EXPER_COUNT - freq_sum)
+    if(rejection != 0):
+        num_elements = len(result)
+        base_value = rejection // num_elements
+        remainder = rejection % num_elements
+
+        result['roundedEqualFreq'] = result['roundedEqualFreq'] + base_value
+        result.loc[:remainder, 'roundedEqualFreq'] += 1
+
+    result['freq^*'] = result['roundedEqualFreq'].apply(lambda roundedEqualFreq: roundedEqualFreq/EXPER_COUNT)
+    print ('среднее выборочное: ' + str(selectiveAvg.quantize(Decimal("1.0000"))))
+    print('дисперсия: ' + str(dispersion.quantize(Decimal("1.0000"))))
+    print('Среднеквадратическое отклонение: ' + str((dispersion.sqrt()).quantize(Decimal("1.0000"))))
+    print('s: ' + str(unclattEvaul.quantize(Decimal("1.0000"))))
+    print('интервал матожидания: ')
+    print(trustMeanInterval)
+    print('интервал среднего квадратического')
+    print(trustAvgQuadInterval)
     return result

@@ -1,2 +1,6 @@
 lib/__pycache__/
 lib/custom_types/__pycache__/
+__pycache__/
+output/
+output.zip
+
