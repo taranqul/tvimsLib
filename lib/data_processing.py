@@ -9,15 +9,19 @@ def makeFrame(list: list[int], collumn: str) -> pd.DataFrame:
 
 def makeCorrelationFrame(firstFrame: pd.DataFrame, secondFrame: pd.DataFrame, sortValue: str = None) -> pd.DataFrame:
     result: pd.DataFrame = pd.merge(firstFrame, secondFrame, left_index=True, right_index=True)
-    if sortValue != None:
-        result = result.sort_values(by=sortValue)    
+    if sortValue:
+        result = result.sort_values(by=sortValue)
+        result.reset_index()
+        result.index += 1
     return result
 
 def makeDiscretFrame(frame: pd.DataFrame) -> pd.DataFrame:
     result: pd.DataFrame = pd.DataFrame(frame.value_counts()).reset_index()
-    result.index=pd.RangeIndex(start=1, stop=result.shape[0]+1)
     result['realativeFreq'] = result.iloc[:, 1].astype(str) + '/' + str(frame.shape[0])
-    return result.sort_values(by=result.columns[0])
+    result = result.sort_values(by=result.columns[0])
+    result = result.reset_index(drop=True)
+    result.index += 1
+    return result
 
 def makeIntervalFrame(discretFrame: pd.DataFrame, step: int, experCount: int) -> pd.DataFrame:
     left: int = discretFrame.iloc[0,0]
@@ -48,7 +52,6 @@ def makeIntervalFrame(discretFrame: pd.DataFrame, step: int, experCount: int) ->
 def makeEmpiricFuncFrame(intervalFrame: pd.DataFrame) -> pd.DataFrame:
     result: pd.DataFrame = pd.DataFrame()
     result['empiric'] = intervalFrame['relatFreq'].cumsum()
-    result.index += 1
     return result
 
 def makeDiscretVariaticFrame(intervalFrame: pd.DataFrame) -> pd.DataFrame:
@@ -91,6 +94,7 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
         result.loc[:remainder, 'roundedEqualFreq'] += 1
 
     result['freq^*'] = result['roundedEqualFreq'].apply(lambda roundedEqualFreq: roundedEqualFreq/EXPER_COUNT)
+
     print ('среднее выборочное: ' + str(selectiveAvg.quantize(Decimal("1.0000"))))
     print('дисперсия: ' + str(dispersion.quantize(Decimal("1.0000"))))
     print('Среднеквадратическое отклонение: ' + str((dispersion.sqrt()).quantize(Decimal("1.0000"))))
@@ -99,4 +103,5 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
     print(trustMeanInterval)
     print('интервал среднего квадратического')
     print(trustAvgQuadInterval)
+
     return result
