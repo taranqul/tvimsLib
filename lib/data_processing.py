@@ -26,7 +26,7 @@ def makeDiscretFrame(frame: pd.DataFrame) -> pd.DataFrame:
 def makeIntervalFrame(discretFrame: pd.DataFrame, step: int, experCount: int) -> pd.DataFrame:
     left: int = discretFrame.iloc[0,0]
     right: int = left + step
-    intervalWalls: list[mi] = [mi(left, right)]
+    intervalWalls: list[mi] = [mi(left, right, quantize_val='1', delimeter='-')]
     freq: list[int] = [discretFrame.iloc[0,1]]
     relatFreq: list[mf] = [mf(0, 1)]
     j = 0
@@ -39,7 +39,7 @@ def makeIntervalFrame(discretFrame: pd.DataFrame, step: int, experCount: int) ->
             j+=1
             left = right
             right += step
-            intervalWalls.append(mi(left, right))
+            intervalWalls.append(mi(left, right, quantize_val='1', delimeter='-'))
             freq.append(0)
             relatFreq.append(mf(0, 1))
 
@@ -76,8 +76,8 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
 
     unclattEvaul: Decimal = ((EXPER_COUNT / (EXPER_COUNT - ONE_DECIMAL)) * dispersion).sqrt()
     temp = CONF_INTR_MEANVALUE*((dispersion / EXPER_COUNT).sqrt())
-    trustMeanInterval: mi = mi(selectiveAvg - temp, selectiveAvg + temp)
-    trustAvgQuadInterval: mi = mi(unclattEvaul / (ONE_DECIMAL + DEC_Q_VALUE), unclattEvaul /  (ONE_DECIMAL - DEC_Q_VALUE))
+    trustMeanInterval: mi = mi(selectiveAvg - temp, selectiveAvg + temp, quantize_val='1.0000', delimeter='-')
+    trustAvgQuadInterval: mi = mi(unclattEvaul / (ONE_DECIMAL + DEC_Q_VALUE), unclattEvaul /  (ONE_DECIMAL - DEC_Q_VALUE), quantize_val ='1.0000', delimeter='-')
     result['u_i'] = result['deviation'].apply(lambda deviation: deviation/trustAvgQuadInterval.calculate_mean())
     result['laplass'] = result['u_i'].apply(lambda u_i: lp(u_i))
     EQUAL_FREQ_AMPLIFYER: Decimal = (EXPER_COUNT*STEP)/trustAvgQuadInterval.calculate_mean()
@@ -104,8 +104,22 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
     print('интервал среднего квадратического')
     print(trustAvgQuadInterval)
 
-    return result, unclattEvaul
+    return result, unclattEvaul, selectiveAvg
 
-def makeCritRealFrame(equalFreqFrame: pd.DataFrame) -> pd.DataFrame:
-    result: pd.DataFrame = pd.DataFrame()
+def makeCritRealFrame(equalFreqFrame: pd.DataFrame, unclattValue: Decimal, accidentsSelectiveAvg: Decimal)  -> pd.DataFrame:
+    intervals: list[str] = [f"-inf ÷ {equalFreqFrame.iloc[0,0]}"]
+    freq: list[int] = [0]
+    laplass: list[Decimal] = [Decimal('-0.500')]
+    ditribution: list[Decimal] = [Decimal('0')]
+
+    for i in range(0):
+        intervals.append(f"{equalFreqFrame.iloc[i,0]} ÷ {equalFreqFrame.iloc[i+1,0]}")
+        z_i: Decimal = (equalFreqFrame.iloc[0,0] - accidentsSelectiveAvg)/unclattValue
+        
+        freq.append(equalFreqFrame['r'].str[i])
+        laplass.append()
+
+
+    result: pd.DataFrame = pd.DataFrame({'intervals': intervals, 'freq' : freq, 'laplass': laplass})
+
     return result
