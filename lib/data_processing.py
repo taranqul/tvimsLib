@@ -62,7 +62,7 @@ def makeDiscretVariaticFrame(intervalFrame: pd.DataFrame) -> pd.DataFrame:
     result['density'] = result['relatFreq'].apply(lambda relatFreq: relatFreq / STEP)
     return result
             
-def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EXPER_COUNT: Decimal, STR_Q_VALUE: str) -> pd.DataFrame:
+def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EXPER_COUNT: Decimal, STR_Q_VALUE: str):
     CONF_INTR_MEANVALUE: Decimal = Decimal('1.96')
     ONE_DECIMAL = Decimal(1)
     DEC_Q_VALUE = Decimal(STR_Q_VALUE)
@@ -104,4 +104,8 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
     print('интервал среднего квадратического')
     print(trustAvgQuadInterval)
 
+    return result, unclattEvaul
+
+def makeCritRealFrame(equalFreqFrame: pd.DataFrame) -> pd.DataFrame:
+    result: pd.DataFrame = pd.DataFrame()
     return result

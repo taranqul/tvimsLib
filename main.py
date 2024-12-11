@@ -1,7 +1,7 @@
 import lib.data_processing as dp
 import lib.plots_draw as plt
 import pandas as pd
-
+from decimal import *
 from parsing_module import parse_fallout
 
 url = 'http://www.pogodaiklimat.ru/history/26063_2.htm'
@@ -18,16 +18,20 @@ falloutRangedFrame: pd.DataFrame = dp.makeCorrelationFrame(falloutFrame, acciden
 accidentsRangedFrame: pd.DataFrame = dp.makeCorrelationFrame(falloutFrame, accidentsFrame, sortValue='accidents')
 
 accidentsDiscretFrame: pd.DataFrame = dp.makeDiscretFrame(accidentsFrame)
-accidentsIntervalFrame: pd.DataFrame = dp.makeIntervalFrame(accidentsDiscretFrame, 54, 156)
+accidentsIntervalFrame: pd.DataFrame = dp.makeIntervalFrame(accidentsDiscretFrame, 36, 156)
 accidentsEmpiricFunc: pd.DataFrame = dp.makeEmpiricFuncFrame(accidentsIntervalFrame)
 accidentsDiscretVariaricFrame: pd.DataFrame = dp.makeDiscretVariaticFrame(accidentsIntervalFrame)
-acvidentsEqualFrame: pd.DataFrame = dp.makeEqualFreq(accidentsDiscretVariaricFrame, accidentsIntervalFrame, 156, 0.115)
+accidentsUnclatt: Decimal
+accidentsEqualFrame: pd.DataFrame
+accidentsEqualFrame, accidentsUnclatt = dp.makeEqualFreq(accidentsDiscretVariaricFrame, accidentsIntervalFrame, 156, 0.115)
 
 falloutDiscretFrame: pd.DataFrame = dp.makeDiscretFrame(falloutFrame)
 falloutIntervalFrame: pd.DataFrame = dp.makeIntervalFrame(falloutDiscretFrame, 26, 156)
 falloutEmpiricFunc: pd.DataFrame = dp.makeEmpiricFuncFrame(falloutIntervalFrame)
 falloutDiscretVariaricFrame: pd.DataFrame = dp.makeDiscretVariaticFrame(falloutIntervalFrame)
-falloutEqualFrame: pd.DataFrame = dp.makeEqualFreq(falloutDiscretVariaricFrame, falloutIntervalFrame, 156, 0.115)
+falloutUnclatt: Decimal
+falloutEqualFrame: pd.DataFrame
+falloutEqualFrame, falloutUnclatt = dp.makeEqualFreq(falloutDiscretVariaricFrame, falloutIntervalFrame, 156, 0.115)
 
 correlationFrame.to_csv('output/correlationFrame.csv')
 falloutRangedFrame.to_csv('output/falloutRangedFrame.csv')
@@ -37,7 +41,7 @@ accidentsDiscretFrame.to_csv('output/accidentsDiscretFrame.csv')
 accidentsIntervalFrame.to_csv('output/accidentsIntervalFrame.csv')
 accidentsEmpiricFunc.to_csv('output/accidentsEmpiricFunc.csv')
 accidentsDiscretVariaricFrame.to_csv('output/accidentsDiscretVariaricFrame.csv')
-acvidentsEqualFrame.to_csv('output/accidentsEqualFrame.csv')
+accidentsEqualFrame.to_csv('output/accidentsEqualFrame.csv')
 
 falloutDiscretFrame.to_csv('output/falloutsDiscretFrame.csv')
 falloutIntervalFrame.to_csv('output/falloutIntervalFrame.csv')
@@ -47,10 +51,11 @@ falloutEqualFrame.to_csv('output/falloutsEqualFrame.csv')
 
 plt.drawEmpiricPlot(accidentsEmpiricFunc, accidentsDiscretVariaricFrame, 'output/accidentsEmpiricFunc.png', 'Accidents')
 plt.drawHist(accidentsIntervalFrame, accidentsDiscretVariaricFrame, 'output/accidentsDiscretVariaricFrame.png', 'Intervals')
-plt.drawEqualFreqPlot(acvidentsEqualFrame, accidentsDiscretVariaricFrame, 'output/acvidentsEqualFrame.png', 'Accidents')
+plt.drawEqualFreqPlot(accidentsEqualFrame, accidentsDiscretVariaricFrame, 'output/accidentsEqualFrame.png', 'Accidents')
 
 plt.drawEmpiricPlot(falloutEmpiricFunc, falloutDiscretVariaricFrame, 'output/falloutEmpiricFunc.png', 'Fallout')
 plt.drawHist(falloutIntervalFrame, falloutDiscretVariaricFrame, 'output/falloutDiscretVariaricFrame.png', 'Intervals')
 plt.drawEqualFreqPlot(falloutEqualFrame, falloutDiscretVariaricFrame, 'output/falloutEqualFrame.png', 'Fallout')
 
 
+print(accidentsUnclatt)
