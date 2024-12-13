@@ -59,3 +59,5 @@ print(accidentsCritRealFrame)
 # plt.drawEmpiricPlot(falloutEmpiricFunc, falloutDiscretVariaricFrame, 'output/falloutEmpiricFunc.png', 'Fallout')
 # plt.drawHist(falloutIntervalFrame, falloutDiscretVariaricFrame, 'output/falloutDiscretVariaricFrame.png', 'Intervals')
 # plt.drawEqualFreqPlot(falloutEqualFrame, falloutDiscretVariaricFrame, 'output/falloutEqualFrame.png', 'Fallout')
+
+

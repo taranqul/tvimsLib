@@ -95,7 +95,7 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
 
     result['freq^*'] = result['roundedEqualFreq'].apply(lambda roundedEqualFreq: roundedEqualFreq/EXPER_COUNT)
 
-    print ('среднее выборочное: ' + str(selectiveAvg.quantize(Decimal("1.0000"))))
+    print('среднее выборочное: ' + str(selectiveAvg.quantize(Decimal("1.0000"))))
     print('дисперсия: ' + str(dispersion.quantize(Decimal("1.0000"))))
     print('Среднеквадратическое отклонение: ' + str((dispersion.sqrt()).quantize(Decimal("1.0000"))))
     print('s: ' + str(unclattEvaul.quantize(Decimal("1.0000"))))
@@ -106,20 +106,21 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
 
     return result, unclattEvaul, selectiveAvg
 
-def makeCritRealFrame(equalFreqFrame: pd.DataFrame, unclattValue: Decimal, accidentsSelectiveAvg: Decimal)  -> pd.DataFrame:
+
+def makeCritRealFrame(equalFreqFrame: pd.DataFrame, unclattValue: Decimal, accidentsSelectiveAvg: Decimal) -> pd.DataFrame:
+    DECIMAL_HALF = Decimal("0.500")
     intervals: list[str] = [f"-inf ÷ {equalFreqFrame.iloc[0,0]}"]
     freq: list[int] = [0]
-    laplass: list[Decimal] = [Decimal('-0.500')]
-    ditribution: list[Decimal] = [Decimal('0')]
+    laplass: list[Decimal] = [-DECIMAL_HALF]
+    ditribution: list[Decimal] = [Decimal("0.0")]
 
-    for i in range(0):
+    for i in range(len(equalFreqFrame) - 1):
         intervals.append(f"{equalFreqFrame.iloc[i,0]} ÷ {equalFreqFrame.iloc[i+1,0]}")
-        z_i: Decimal = (equalFreqFrame.iloc[0,0] - accidentsSelectiveAvg)/unclattValue
-        
-        freq.append(equalFreqFrame['r'].str[i])
-        laplass.append()
+        z_i_plus: Decimal = (equalFreqFrame.iloc[i+1,0] - accidentsSelectiveAvg) / unclattValue
+        ditribution.append(lp(z_i_plus))
+        freq.append(equalFreqFrame.iloc[i+1]['roundedEqualFreq'])
+        laplass.append(ditribution[-1] + DECIMAL_HALF)
 
-
-    result: pd.DataFrame = pd.DataFrame({'intervals': intervals, 'freq' : freq, 'laplass': laplass})
+    result: pd.DataFrame = pd.DataFrame({'intervals': intervals, 'freq': freq, 'laplass': laplass, 'ditribution': ditribution})
 
     return result
