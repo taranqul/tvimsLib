@@ -31,7 +31,7 @@ def drawEqualFreqPlot(equalFreqFrame: pd.DataFrame, discretVarFrame: pd.DataFram
     plt.close()
 
 def drawScatterDots(correlationFrame: pd.DataFrame, path: str):
-    plt.scatter(correlationFrame[correlationFrame.columns[0]], correlationFrame[correlationFrame.columns[1]], color='blue', label='Экспериментальные точки')
+    plt.scatter(correlationFrame[correlationFrame.columns[1]], correlationFrame[correlationFrame.columns[0]], color='blue', label='Экспериментальные точки')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title('Экспериментальных точки')

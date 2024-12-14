@@ -20,7 +20,7 @@ rankedCorrelationFrame: pd.DataFrame = corr.makeRankFrame(correlationFrame)
 rankedValue: Decimal = corr.correlationValue(rankedCorrelationFrame, EXPER_COUNT)
 falloutRangedFrame: pd.DataFrame = dp.makeCorrelationFrame(falloutFrame, accidentsFrame, sortValue='fallout')
 accidentsRangedFrame: pd.DataFrame = dp.makeCorrelationFrame(falloutFrame, accidentsFrame, sortValue='accidents')
-
+print(rankedValue)
 accidentsDiscretFrame: pd.DataFrame = dp.makeDiscretFrame(accidentsFrame)
 accidentsIntervalFrame: pd.DataFrame = dp.makeIntervalFrame(accidentsDiscretFrame, 36, 156)
 accidentsEmpiricFunc: pd.DataFrame = dp.makeEmpiricFuncFrame(accidentsIntervalFrame)
