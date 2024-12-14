@@ -2,6 +2,7 @@ import pandas as pd
 from lib.custom_types.my_fraction import MyFraction as mf
 from lib.custom_types.my_intervals import MyIntervals as mi
 from lib.utils import laplass as lp
+from lib.utils import integralLaplass as ilp
 from decimal import Decimal
 def makeFrame(list: list[int], collumn: str) -> pd.DataFrame:
     result: pd.DataFrame = pd.DataFrame(list, columns=[collumn])
@@ -107,20 +108,48 @@ def makeEqualFreq(discretVarFrame: pd.DataFrame, intervalFrame: pd.DataFrame, EX
     return result, unclattEvaul, selectiveAvg
 
 
-def makeCritRealFrame(equalFreqFrame: pd.DataFrame, unclattValue: Decimal, accidentsSelectiveAvg: Decimal) -> pd.DataFrame:
+def makeCritRealFrame(equalFreqFrame: pd.DataFrame, discretFrame: pd.DataFrame, unclattValue: Decimal, accidentsSelectiveAvg: Decimal, experCount: int) -> pd.DataFrame:
     DECIMAL_HALF = Decimal("0.500")
+    freq_under_inf: int = (discretFrame.loc[discretFrame.iloc[:, 0] < equalFreqFrame.iloc[0,0], discretFrame.columns[1]]).sum()
+    
     intervals: list[str] = [f"-inf ÷ {equalFreqFrame.iloc[0,0]}"]
-    freq: list[int] = [0]
+    freq: list[int] = [freq_under_inf]
     laplass: list[Decimal] = [-DECIMAL_HALF]
     ditribution: list[Decimal] = [Decimal("0.0")]
 
-    for i in range(len(equalFreqFrame) - 1):
+    for i in range(len(equalFreqFrame)-1):
         intervals.append(f"{equalFreqFrame.iloc[i,0]} ÷ {equalFreqFrame.iloc[i+1,0]}")
-        z_i_plus: Decimal = (equalFreqFrame.iloc[i+1,0] - accidentsSelectiveAvg) / unclattValue
-        ditribution.append(lp(z_i_plus))
-        freq.append(equalFreqFrame.iloc[i+1]['roundedEqualFreq'])
-        laplass.append(ditribution[-1] + DECIMAL_HALF)
+        z_i_plus: Decimal = (equalFreqFrame.iloc[i,0] - accidentsSelectiveAvg) / unclattValue
 
-    result: pd.DataFrame = pd.DataFrame({'intervals': intervals, 'freq': freq, 'laplass': laplass, 'ditribution': ditribution})
+        laplass.append(ilp(z_i_plus))
+        ditribution.append(laplass[-1] + DECIMAL_HALF)
+        freq.append(equalFreqFrame.iloc[i]['roundedEqualFreq'])
+    
+    intervals.append(f"{equalFreqFrame.iloc[-1,0]} ÷ inf")
+    freq.append(equalFreqFrame.iloc[-1]['roundedEqualFreq'])
+    z_i_plus: Decimal = (equalFreqFrame.iloc[-1,0] - accidentsSelectiveAvg) / unclattValue
+    laplass.append(ilp(z_i_plus))
+    ditribution.append(laplass[-1] + DECIMAL_HALF)
+    distribution_plus_one: list[Decimal] = ditribution[1::]
+    distribution_plus_one.append(Decimal('1'))
+    result: pd.DataFrame = pd.DataFrame({'intervals': intervals, 'freq': freq, 'laplass': laplass, 'distribution': ditribution, 'distribution+1': distribution_plus_one})
+    result['p_i_m'] = result['distribution+1'] - result['distribution']
+    result['n_i_m'] = result['p_i_m'].apply(lambda p: p*Decimal(experCount))
+    cum_sum: Decimal = Decimal('0')
+    cum_freq: Decimal = Decimal('0')
+    result['n**2'] = [Decimal('0')] * result.shape[0]
+    for i in range(0, result.shape[0]):
+        cum_sum += result.iloc[i]['n_i_m']
+        cum_freq += result.iloc[i][ 'freq']
+        if cum_sum < 5:
+            continue
+        result.loc[i,'n**2'] = ((cum_freq - cum_sum)**2)/cum_sum
+        cum_sum = 0 
+        cum_freq = 0
 
+    if cum_sum != 0:
+        result.loc[result.shape[0]-1,'n**2'] = ((cum_freq - cum_sum)**2)/cum_sum
+    print(result['p_i_m'].sum().quantize(Decimal('1.000')))
+    print(result['n_i_m'].sum().quantize(Decimal('1.000')))
+    print(result['n**2'].sum().quantize(Decimal('1.000')))
     return result

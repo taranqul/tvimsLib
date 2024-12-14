@@ -1,4 +1,4 @@
 import math
-from lib.custom_types.my_intervals import MyIntervals as mi
-inter: mi = mi(-math.inf, math.inf, quantize_val='1', delimeter='-')
-print(inter)
+from lib.utils import integralLaplass as ilp
+from decimal import Decimal 
+print(ilp(-3.0))

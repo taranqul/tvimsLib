@@ -8,5 +8,6 @@ def laplass(u_value: Decimal) -> Decimal:
     return (Decimal(1) / sqrt_2pi) * exponent.exp()
 
 def integralLaplass(u_value: Decimal) -> Decimal:
-    result = scipy.stats.norm.cdf(u_value)
+    result = Decimal(scipy.stats.norm.cdf(float(u_value))) - Decimal('0.5')
+
     return result
